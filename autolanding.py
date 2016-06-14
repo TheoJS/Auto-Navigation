@@ -99,7 +99,7 @@ parser.add_argument('--connect',
 args = parser.parse_args()
 
 connection_string = args.connect
-target_altitude=4
+target_altitude = 4
 
 
 #Return error if no connection found
@@ -115,8 +115,8 @@ vehicle = connect(connection_string, wait_ready=True)
 #Take off
 arm_and_takeoff(target_altitude)
 
-print "Set default/target airspeed to 3"
-vehicle.airspeed = 3
+print "Set default/target airspeed to 1"
+vehicle.airspeed = 1
 
 #Get GPS from platform
 #######################################################
@@ -132,7 +132,8 @@ while True:
   #Travel toward the target
   goto(vehicle, platform_pos)
   
-  #Init the tracking camera
+  #Init the tracking camera and lidar
+  lidar = Lidar_Lite()
   tracker = Camera()
   counter = 0
 
@@ -156,14 +157,15 @@ while True:
         
         ###############################################
         #Get altitude with lidar
-        alt = vehicle.location.global_relative_frame.alt
+        #alt = vehicle.location.global_relative_frame.alt
+        print lidar.getDistance()
         ###############################################
         
         yT = yT-img_width/2
         xT = xT-img_height/2
-        vy_targ =  max(yT/150*alt, 1) # move slower at reduce altitude
-        vx_targ = max(xT/150*alt, 1)
-        vz_targ = -max(1/sqrt((xT/150)**2 + (yT/150)**2), 0.15) 
+        vy_targ =  min(max(yT/150*alt, -1), 1) # move slower at reduce altitude, always limited to 1m/s
+        vx_targ =  min(max(xT/150*alt, -1), 1)
+        #vz_targ = -max(1/sqrt((xT/150)**2 + (yT/150)**2), 0.15) 
         #the closer it is to the target the faster it goes down, limited to 0.15m/s
 
 
